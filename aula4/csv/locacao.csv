@@ -1,0 +1,5 @@
+codigolocacao;dataretirada;dataentrega;filialretirada;filialentrega;kmretirada;kmentrega;formapagamento;condicoesveiculo;cliente;veiculo
+00004;2021-09-30 18:00:00;;12345678911235;12345678911234;28000;;480 em dinheiro;tanque cheio e sem alterações na condição da lataria e da mecânica;123456789;XYZ1A34
+00002;2020-08-22 18:00:00;2020-08-25 09:00:00;12345678911235;12345678911234;25030;25640;480 em dinheiro;tanque cheio e sem alterações na condição da lataria e da mecânica;123456789;ABC1A23
+00003;2020-08-25 18:00:00;2020-08-31 09:00:00;12345678911235;12345678911234;25640;28000;480 em dinheiro;tanque cheio e sem alterações na condição da lataria e da mecânica;123456789;XYZ1A34
+00001;2020-08-21 18:00:00;2020-08-24 09:00:00;12345678911235;12345678911234;25030;25640;480 em dinheiro;tanque cheio e sem alterações na condição da lataria e da mecânica;123456789;XYZ1A34

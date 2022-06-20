@@ -1,0 +1,506 @@
+
+
+
+
+
+
+1) Escreva comandos select, utilizando as tabelas criadas na lista de exercícios de DDL e DML da
+semana 2, para responder as perguntas:
+* Todas as perguntas devem ser respondidas com 1 comando select que acessa apenas 1 tabela.
+Se sua modelagem não permite isto, ajuste sua modelagem!
+a) auto-locadoras
+1) Quais são todas as características (câmbio manual, câmbio automático, ar condicionado, direção
+hidráulica, direção elétrica, vidro elétrico, ...) do carro com placas ABC 1A23?
+select placa, descricao
+from veiculo 
+where placa = 'ABC1A23';
+
+
+2) Quando foi a última revisão realizada no carro com placas ABC1A23?
+select max(datarevisao) as ultimarevisao
+from revisao 
+where veiculo = 'ABC1A23' ;  
+
+
+3) Quantas revisões foram realizadas no carro com placas ABC 1A23 nos últimos 6 meses?
+select veiculo, count(*) as quantidade_revisoes 
+from revisao 
+where datarevisao >=  CURRENT_DATE - INTERVAL '6 months'
+and veiculo = 'ABC1A23'
+group by veiculo;
+
+4) Quais as placas dos carros que não fazem revisão há mais de 3 meses?
+select placa  
+from veiculo 
+where dataultimarevisao not between (now() - interval '3 month') and now();
+
+
+
+5) Qual a quilometragem do carro com placas ABC 1A23 em cada retirada?
+select dataretirada, veiculo, kmretirada
+from locacao
+where veiculo = 'ABC1A23';
+
+6) Quantos quilômetros o carro com placas ABC 1A23 rodou nos últimos 3 meses?
+
+select sum(kmentrega - kmretirada)
+from locacao
+where veiculo = 'ABC1A23'
+and dataretirada >=  CURRENT_DATE - INTERVAL '3 months';
+
+7) Qual o ranking das placas mais locadas no mês passado?
+select veiculo, count(*) as numerodelocacoes
+from locacao
+where dataretirada >=  CURRENT_DATE - INTERVAL '1 month'
+group by veiculo;
+
+8) Qual a placa do último carro locado pelo cliente com CNH 00123456789?
+select veiculo, max(dataretirada) 
+from locacao 
+where cliente = '123456789' 
+group by veiculo;  
+
+
+
+9) Quais as placas dos carros locados e ainda não entregues?
+select veiculo
+from locacao
+where dataentrega is NULL;
+
+
+
+10) Quanto tempo o carro com placas ABC 1A23 ficou locado por mês no último semestre?
+select extract(year from dataretirada) as ano,
+case extract(month from dataretirada) 		
+		when 1 then 'janeiro'
+		when 2 then 'fevereiro'
+		when 3 then 'março'
+		when 4 then 'abril'
+		when 5 then 'maio'
+		when 6 then 'junho'
+		when 7 then 'julho'
+		when 8 then 'agosto'
+		when 9 then 'setembro'
+		when 10 then 'outubro'
+		when 11 then 'novembro'
+		when 12 then 'dezembro'
+			end 
+as mes,
+sum(dataentrega - dataretirada) as tempopormes
+from locacao
+where dataretirada >= date_trunc('month', current_date - interval '12' month)
+and dataretirada < date_trunc('quarter', current_date)
+where veiculo = 'ABC1A23'
+group by ano, mes
+Order by ano desc, mes ASC;
+
+
+
+
+11) Qual a duração média das locações do carro com placas ABC 1A23 no último semestre?
+SELECT avg(dataentrega - dataretirada) 
+FROM locacao
+WHERE veiculo = 'ABC1A23';
+
+select extract(year from dataretirada) as ano,
+case extract(month from dataretirada) 		
+		when 1 then 1
+		when 2 then 1
+		when 3 then 1
+		when 4 then 1
+		when 5 then 1
+		when 6 then 1
+		when 7 then 2
+		when 8 then 2
+		when 9 then 2
+		when 10 then 2
+		when 11 then 2
+		when 12 then 2
+			end 
+as semestre,
+avg(dataentrega - dataretirada) as media
+from locacao
+where dataretirada >= date_trunc('month', current_date - interval '12' month)
+and dataretirada < date_trunc('month', current_date)
+and veiculo = 'ABC1A23'
+group by ano, semestre
+Order by ano desc, semestre ASC
+limit 1;
+
+
+
+
+
+12) Qual a duração da locação de maior duração do cliente com CNH 00123456789?
+select max(dataentrega - dataretirada)
+from locacao
+where cliente = '123456789' and dataentrega is not NULL;
+
+
+13) Em quais meses o cliente com CNH 00123456789 locou mais de 3 carros no ano passado?
+select extract(month from dataretirada) as mes
+count(*)
+from locacao
+where dataretirada >= date_trunc('year', current_date - interval '1' year)
+and dataretirada < date_trunc('year', current_date)
+and cliente = '123456789'
+having count(cliente) >2; 
+
+===================================================================================================================================
+
+b) bancos
+1) Qual o ranking dos estados (UFs) por quantidade de agências?
+select estado, count(estado) as numerodeagencias
+from agencia
+group by estado 
+order by 2 desc;
+
+2) Quais estados (UFs) possuem mais de 3 agências?
+select estado, count(estado) as numerodeagencias
+from agencia
+group by estado 
+having count(estado) >3;
+
+3) Quantas contas correntes ativas possuía a agência 123-4 no último dia do ano passado?
+select count(codconta) as contasativas
+from contacorrente
+where agencia = '123-4'
+and dataaberturacc < date_trunc('year', current_date)
+and datafechamento is NULL; 
+
+4) Quantas contas correntes ativas possui atualmente a agência 123-4?
+select count(codconta) as contasativas
+from contacorrente
+where agencia = '123-4'
+and datafechamento is NULL ;
+
+5) Qual o saldo da conta corrente 12345-6 da agência 123-4 no último dia do ano passado?
+select sum(valor) as saldo
+from lancamento
+where contacorrente = '12345-6'
+and datalancamento < date_trunc('year', current_date);
+
+6) Qual o saldo atual da conta corrente 12345-6 da agência 123-4?
+select sum(valor) as saldo
+from lancamento
+where contacorrente = '12345-6';
+
+7) Qual a data de abertura da conta corrente ativa mais antiga da agência 123-4?
+select min(dataaberturacc) 
+from contacorrente
+where agencia = '123-4';
+
+8) Quantas contas correntes foram encerradas na agência 123-4 no último semestre?
+select extract(year from datafechamento) as ano,
+case extract(month from datafechamento) 		
+		when 1 then 1
+		when 2 then 1
+		when 3 then 1
+		when 4 then 1
+		when 5 then 1
+		when 6 then 1
+		when 7 then 2
+		when 8 then 2
+		when 9 then 2
+		when 10 then 2
+		when 11 then 2
+		when 12 then 2
+			end 
+as semestre,
+count (*) as contasencerradas
+from contacorrente
+where datafechamento >= date_trunc('month', current_date - interval '12' month)
+and datafechamento < date_trunc('month', current_date)
+and agencia = '123-4'
+group by ano, semestre
+Order by ano desc, semestre ASC
+limit 1;
+
+9) Quantos empréstimos foram contratados na agência 123-4 no último semestre?
+select extract(year from datacontratacao) as ano,
+case extract(month from datacontratacao) 		
+		when 1 then 1
+		when 2 then 1
+		when 3 then 1
+		when 4 then 1
+		when 5 then 1
+		when 6 then 1
+		when 7 then 2
+		when 8 then 2
+		when 9 then 2
+		when 10 then 2
+		when 11 then 2
+		when 12 then 2
+			end 
+as semestre,
+count (*) as emprestimoporsemestre
+from emprestimo
+where datacontratacao >= date_trunc('month', current_date - interval '18' month)
+and datacontratacao < date_trunc('month', current_date)
+and agencia = '123-4'
+group by ano, semestre
+Order by ano desc, semestre ASC
+limit 1;
+
+10) Quantos empréstimos foram contratados na agência 123-4 em cada um dos últimos 3
+semestres?
+select extract(year from datacontratacao) as ano,
+case extract(month from datacontratacao) 		
+		when 1 then 1
+		when 2 then 1
+		when 3 then 1
+		when 4 then 1
+		when 5 then 1
+		when 6 then 1
+		when 7 then 2
+		when 8 then 2
+		when 9 then 2
+		when 10 then 2
+		when 11 then 2
+		when 12 then 2
+			end 
+as semestre,
+count (*) as emprestimoporsemestre
+from emprestimo
+where datacontratacao >= date_trunc('month', current_date - interval '18' month)
+and datacontratacao < date_trunc('month', current_date)
+and agencia = '123-4'
+group by ano, semestre
+Order by ano desc, semestre ASC
+limit 3;
+
+
+11) Qual o mês com mais contratação de empréstimos na agência 123-4 nos últimos 5 anos?
+select 
+extract(year from datacontratacao) as ano,
+extract(month from datacontratacao) as mes,
+count (*) as emprestimos
+from emprestimo
+where datacontratacao >= date_trunc('year', current_date - interval '5' year)
+and datacontratacao < date_trunc('month', current_date)
+and agencia = '123-4'
+group by ano, mes
+Order by emprestimos desc
+limit 1;
+
+
+12) Qual o valor médio de parcela dos empréstimos contratados na agência 123-4 no último
+semestre?
+select extract(year from datacontratacao) as ano,
+case extract(month from datacontratacao) 		
+		when 1 then 1
+		when 2 then 1
+		when 3 then 1
+		when 4 then 1
+		when 5 then 1
+		when 6 then 1
+		when 7 then 2
+		when 8 then 2
+		when 9 then 2
+		when 10 then 2
+		when 11 then 2
+		when 12 then 2
+			end 
+as semestre,
+AVG (valorparcela) as mediaparcela
+from parcela
+where datacontratacao >= date_trunc('month', current_date - interval '12' month)
+and datacontratacao < date_trunc('quarter', current_date)
+and agencia = '123-4'
+
+group by ano, semestre
+Order by ano desc, semestre ASC
+limit 1;
+
+
+
+
+13) Quais parcelas do empréstimo 12365-123/2020 da agência 123-4 foram pagas após a data de
+vencimento? Considere que quando o vencimento ocorre num sábado ou domingo, o pagamento
+realizado na segunda seguinte não é considerado atrasado.
+
+14) Qual o valor do maior depósito na poupança 98765-123/2015 da agência 123-4 no último
+semestre?
+select extract(year from datalancamento) as ano,
+case extract(month from datalancamento) 		
+		when 1 then 1
+		when 2 then 1
+		when 3 then 1
+		when 4 then 1
+		when 5 then 1
+		when 6 then 1
+		when 7 then 2
+		when 8 then 2
+		when 9 then 2
+		when 10 then 2
+		when 11 then 2
+		when 12 then 2
+			end 
+as semestre,
+max (valorparcela) as maiordeposito
+from poupanca
+where datalancamento >= date_trunc('month', current_date - interval '12' month)
+and datalancamento < date_trunc('quarter', current_date)
+and agencia = '123-4'
+group by ano, semestre
+Order by ano desc, semestre ASC
+limit 1;
+
+
+
+15) Qual o valor da fatura do próximo mês do cartão de crédito VISA 1234-1234-1234-1234?
+select datavencimento, sum (valor) as valorfatura
+from fatura
+where cartaodecredito = '1234123412341234'
+and datavencimento = date_trunc('month', current_date + interval '1' month)
+group by datavencimento ;
+
+
+
+
+===================================================================================================================================
+
+2) Descreva e justifique as adequações/alterações que foram realizadas nas tabelas criadas para a
+lista de exercícios de DDL e DML da semana 2 para que o exercício 1 acima pudesse ser resolvido:
+a) auto-locadoras
+inseri o atributo ultimarevisao na entidade veiculo
+b) bancos
+criei o atributo agencia na tabela de emprestimos para corrigir ausencia
+alterei a entidade parcela para chave composta para corrigir erro identificador da parcela em emprestimos diferentes
+criei o atributo datacontratacao e agencia na entidade parcela para otimizar o select
+criei a entidade poupanca para que nao era necessário nos requisitos anteriores 
+criei a entidade comprafatura para corrigir modelagem n:n
+
+===================================================================================================================================
+exercício 3:
+a)Quantas pizzas foram pedidas pela comanda 235?
+select count(*) 
+from pizza where comanda = 235;
+
+
+b)Quantas pizzas de tamanho grande ou família foram pedidas pela comanda 235?
+select count(*) 
+from pizza
+where (comanda = 235) and (tamanho like '%G%' or tamanho like '%F%');
+
+c)Qual a quantidade de comandas não pagas no última semana?
+select count(numero) 
+from comanda
+where pago = false 
+and data >= date_trunc('week', current_timestamp - interval '1 week') 
+and data < date_trunc('week', current_timestamp);
+      
+
+d)  Quantos ingredientes possui o sabor margherita, sabendo que o código do sabor margherita é
+123?
+select count(ingrediente) 
+from saboringrediente 
+where sabor = 123;
+
+e) Quantos sabores contém o ingrediente catupiri, sabendo que o código do ingrediente catupiri é
+234?
+select 
+count(sabor) 
+from saboringrediente 
+where ingrediente = 234;
+
+
+
+f)Qual a quantidade média de ingredientes por sabor?
+select count(ingrediente)/count(distinct sabor) as mediaporsabor 
+from saboringrediente ; 
+ 
+
+g) Quantos sabores possuem mais de 8 ingredientes?
+select sabor from saboringrediente
+group by sabor
+having count(ingrediente)>8;
+
+
+h) Quantos sabores doces possuem mais de 8 ingredientes?
+não é possivel usando apenas uma tabela. A quantidade de ingredientes está na tabela saboringrediente e o tipo(doce/salgada) está na tabela sabor.
+
+i) Qual a quantidade de comandas por dia nos últimos 15 dias?
+select count(*) as comandasdia, data 
+from comanda 
+where data >= current_date - 15 
+group by data
+order by data asc;
+
+
+
+j) Quais dias tiveram mais de 10 comandas nos últimos 15 dias?
+select count(*) as comandasdia, data 
+from comanda 
+where data >= current_date - 15 
+group by data
+having count(*) >10
+order by data asc;
+
+
+
+k) Qual o ranking da quantidade de comandas por dia da semana em julho de 2020?
+select count(*) as comandasdia, 
+case extract(dow from data)
+		when 0 then 'domingo'
+		when 1 then 'segunda'
+		when 2 then 'terca'
+		when 3 then 'quarta'
+		when 4 then 'quinta'
+		when 5 then 'sexta'
+		when 6 then 'sabado'
+	end 
+from comanda
+where data between '2020-07-01' and '2020-07-31'
+group by data;
+
+
+l) Qual o ranking da quantidade de comandas por dia da semana no mês passado?
+select count(*) as comandasdia, 
+case extract(dow from data)
+		when 0 then 'domingo'
+		when 1 then 'segunda'
+		when 2 then 'terca'
+		when 3 then 'quarta'
+		when 4 then 'quinta'
+		when 5 then 'sexta'
+		when 6 then 'sabado'
+	end 
+from comanda
+where data >= date_trunc('month', current_date - interval '1' month)
+and data < date_trunc('month', current_date)
+group by data;
+
+
+
+m) Quais dias da semana tiveram menos de 20 comandas no mês passado?
+select count(*) as comandasdia, 
+case extract(dow from data)
+		when 0 then 'domingo'
+		when 1 then 'segunda'
+		when 2 then 'terca'
+		when 3 then 'quarta'
+		when 4 then 'quinta'
+		when 5 then 'sexta'
+		when 6 then 'sabado'
+	end 
+from comanda
+where data >= date_trunc('month', current_date - interval '1' month)
+and data < date_trunc('month', current_date)
+group by data
+having count(*)<20;
+
+
+n) Qual o ranking dos sabores mais pedidos nos últimos 15 dias?
+não é possivel realizar a consulta apenas em uma tabela. Os sabores pedidos ficam na tabela pizzasabor e a data fica na tabela comanda.
+
+
+o) Qual o valor a pagar da comanda 315?
+não é possivel utilizando apenas 1 tabela. os preços ficam nas tabelas precoportamanho/sabor e a comanda fica na tabela pizza.
+
+
+
+
+
+
+

@@ -1,0 +1,503 @@
+Subconsultas
+	Quanto à localização
+		na lista de campos (com apelido)
+		no from (com apelido)
+		no where/having (sem apelido)
+	Quanto à vinculação
+		sem vinculação
+		com vinculação (para-cada-faça)
+
+Operações com conjuntos
+	Pertinência
+		expressão IN (consulta)
+		expressão NOT IN (consulta)
+	União
+		(consulta) UNION [ ALL ] (consulta)
+	Intersecção
+		(consulta) INTERSECT (consulta)
+	Diferença
+		(consulta) EXCEPT (consulta)
+
+sintaxe
+	A | B = A ou B
+	[ A ] = A é opcional
+	A ... = repetição de A
+
+----------------------------------------------------------------------------------------------------
+-- navenet.sql
+----------------------------------------------------------------------------------------------------
+
+-- qual preço em R$ da HD de 500GB mais barata e mais cara?
+select
+	(select min(preco)
+	from produto
+	where lower(descricao) like '%hd % 500%gb%')*5.63 as minimo,
+	(select max(preco)
+	from produto
+	where lower(descricao) like '%hd % 500%gb%')*5.63 as maximo;
+
+-- quais HD de 500GB custam menos de R$200?
+select *
+from
+	(select *
+	from produto
+	where lower(descricao) like '%hd % 500%gb%') as tmp
+where tmp.preco*5.63 < 200;
+
+-- qual a HD de 500GB mais barata?
+select *
+from produto
+where lower(descricao) like '%hd % 500%gb%' and
+	preco =
+		(select min(preco)
+		from produto
+		where lower(descricao) like '%hd % 500%gb%');
+
+-- quais HD de 500GB possuem preço abaixo da média?
+select *
+from produto
+where lower(descricao) like '%hd % 500%gb%' and
+	preco <
+		(select avg(preco)
+		from produto
+		where lower(descricao) like '%hd % 500%gb%');
+
+-- qual o departamento com mais produtos?
+
+-- forma 1
+select departamento
+from produto
+group by departamento
+having count(*) =
+	(select count(*)
+	from produto
+	group by departamento
+	order by 1 desc
+	limit 1);
+
+-- forma 2
+select tmp2.departamento
+from
+	(select departamento, count(*) as quantidade
+	from produto
+	group by departamento) as tmp2
+where tmp2.quantidade =
+	(select max(tmp1.quantidade)
+	from
+		(select count(*) as quantidade
+		from produto
+		group by departamento) as tmp1);
+
+----------------------------------------------------------------------------------------------------
+-- pizzaria.sql
+----------------------------------------------------------------------------------------------------
+
+-- quantidade de ingredientes de cada sabor
+
+-- sem subconsulta
+select sabor.nome as sabor, count(*) as quantidade
+from sabor
+	join saboringrediente on saboringrediente.sabor = sabor.codigo
+group by 1
+order by 2 desc;
+
+-- com subconsulta, com vinculação
+select sabor.nome as sabor,
+	(select count(*)
+	from saboringrediente
+	where saboringrediente.sabor = sabor.codigo) as quantidade
+from sabor
+order by 2 desc;
+
+-- mesas utilizadas em 09/08/2020
+
+-- com join
+select distinct mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-09' as date)
+order by 1 asc;
+
+-- com in
+select mesa.nome as mesa
+from mesa
+where mesa.codigo in
+	(select comanda.mesa
+	from comanda
+	where comanda.data = cast('2020-08-09' as date))
+order by 1 asc;
+
+-- mesas não utilizadas em 09/08/2020
+select mesa.nome as mesa
+from mesa
+where mesa.codigo not in
+	(select comanda.mesa
+	from comanda
+	where comanda.data = cast('2020-08-09' as date))
+order by 1 asc;
+
+-- mesas utilizadas em 09/08/2020 ou em 16/08/2020
+
+-- com join
+select distinct mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-09' as date) or
+	comanda.data = cast('2020-08-16' as date)
+order by 1 asc;
+
+-- com in
+select mesa.nome as mesa
+from mesa
+where mesa.codigo in
+		(select comanda.mesa
+		from comanda
+		where comanda.data = cast('2020-08-09' as date)) or
+	mesa.codigo in
+		(select comanda.mesa
+		from comanda
+		where comanda.data = cast('2020-08-16' as date))
+order by 1 asc;
+
+-- com union
+(select mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-09' as date))
+union
+(select mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-16' as date))
+order by 1 asc;
+
+-- mesas utilizadas em 09/08/2020 e também em 16/08/2020
+
+-- com join
+select distinct mesa.nome as mesa
+from
+	(select comanda.mesa
+	from comanda
+	where comanda.data = cast('2020-08-09' as date)) as tmp1
+	join
+		(select comanda.mesa
+		from comanda
+		where comanda.data = cast('2020-08-16' as date)) as tmp2 on tmp1.mesa = tmp2.mesa
+	join mesa on mesa.codigo = tmp1.mesa
+order by 1 asc;
+
+-- com in
+select mesa.nome as mesa
+from mesa
+where mesa.codigo in
+	(select comanda.mesa
+	from comanda
+	where comanda.data = cast('2020-08-09' as date) and
+		comanda.mesa in
+			(select comanda.mesa
+			from comanda
+			where comanda.data = cast('2020-08-16' as date)))
+order by 1 asc;
+
+-- com intersect
+(select mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-09' as date))
+intersect
+(select mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-16' as date))
+order by 1 asc;
+
+-- mesas utilizadas em 16/08/2020 mas não em 09/08/2020
+
+-- com in
+select mesa.nome as mesa
+from mesa
+where mesa.codigo in
+	(select comanda.mesa
+	from comanda
+	where comanda.data = cast('2020-08-16' as date) and
+		comanda.mesa not in
+			(select comanda.mesa
+			from comanda
+			where comanda.data = cast('2020-08-09' as date)))
+order by 1 asc;
+
+-- com except
+(select mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-16' as date))
+except
+(select mesa.nome as mesa
+from comanda
+	join mesa on comanda.mesa = mesa.codigo
+where comanda.data = cast('2020-08-09' as date))
+order by 1 asc;
+
+-- sabores salgados que não contém palmito
+
+-- com in
+select sabor.nome
+from sabor
+	join tipo on sabor.tipo = tipo.codigo
+where lower(tipo.nome) like '%salgada%' and
+	sabor.codigo not in
+		(select sabor.codigo
+		from sabor
+			join tipo on sabor.tipo = tipo.codigo
+			join saboringrediente on saboringrediente.sabor = sabor.codigo
+			join ingrediente on saboringrediente.ingrediente = ingrediente.codigo
+		where lower(tipo.nome) like '%salgada%' and
+			lower(ingrediente.nome) = 'palmito')
+order by 1 asc;
+
+-- com except
+(select sabor.nome
+from sabor
+	join tipo on sabor.tipo = tipo.codigo
+where lower(tipo.nome) like '%salgada%')
+except
+(select sabor.nome
+from sabor
+	join tipo on sabor.tipo = tipo.codigo
+	join saboringrediente on saboringrediente.sabor = sabor.codigo
+	join ingrediente on saboringrediente.ingrediente = ingrediente.codigo
+where lower(tipo.nome) like '%salgada%' and
+	lower(ingrediente.nome) = 'palmito')
+order by 1 asc;
+
+-- dias da semana com as 3 maiores quantidades de pizza
+
+-- ranking da quantidade de pizzas por dia da semana
+select extract(dow from comanda.data) as diasemana, count(*) as quantidade
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+group by extract(dow from comanda.data)
+order by 2 desc;
+
+-- 3 maiores quantidades de pizzas por dia da semana
+select distinct count(*) as quantidade
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+group by extract(dow from comanda.data)
+order by 1 desc
+limit 3;
+
+-- dias da semana com as 3 maiores quantidades de pizza
+select
+	case extract(dow from comanda.data)
+		when 0 then 'Dom'
+		when 1 then 'Seg'
+		when 2 then 'Ter'
+		when 3 then 'Qua'
+		when 4 then 'Qui'
+		when 5 then 'Sex'
+		when 6 then 'Sab'
+	end as diasemana,
+	count(*) as quantidade
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+group by extract(dow from comanda.data)
+having count(*) in
+	(select distinct count(*) as quantidade
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+	group by extract(dow from comanda.data)
+	order by 1 desc
+	limit 3)
+order by 2 desc;
+
+-- valor total da comanda 12
+
+-- valor de cada sabor e borda da comanda 12
+select comanda.numero, comanda.data, comanda.mesa, pizza.codigo, pizza.tamanho, sabor.nome, precoportamanho.preco, borda.preco,
+	case
+		when borda.preco is null then 0
+		else borda.preco
+	end+precoportamanho.preco as preco
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+	join pizzasabor on pizzasabor.pizza = pizza.codigo
+	join sabor on pizzasabor.sabor = sabor.codigo
+	join precoportamanho on precoportamanho.tipo = sabor.tipo and precoportamanho.tamanho = pizza.tamanho
+	left join borda on pizza.borda = borda.codigo
+where comanda.numero = 12;
+
+-- valor de cada pizza da comanda 12
+select
+	max(case
+			when borda.preco is null then 0
+			else borda.preco
+		end+precoportamanho.preco) as preco
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+	join pizzasabor on pizzasabor.pizza = pizza.codigo
+	join sabor on pizzasabor.sabor = sabor.codigo
+	join precoportamanho on precoportamanho.tipo = sabor.tipo and precoportamanho.tamanho = pizza.tamanho
+	left join borda on pizza.borda = borda.codigo
+where comanda.numero = 12
+group by pizza.codigo;
+
+-- valor total da comanda 12
+select sum(tmp.preco) as total
+from
+	(select
+		max(case
+				when borda.preco is null then 0
+				else borda.preco
+			end+precoportamanho.preco) as preco
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+		join pizzasabor on pizzasabor.pizza = pizza.codigo
+		join sabor on pizzasabor.sabor = sabor.codigo
+		join precoportamanho on precoportamanho.tipo = sabor.tipo and precoportamanho.tamanho = pizza.tamanho
+		left join borda on pizza.borda = borda.codigo
+	where comanda.numero = 12
+	group by pizza.codigo) as tmp;
+
+-- valor total das comandas de 09/08/2020
+select tmp.numero as comanda, sum(tmp.preco) as total
+from
+	(select comanda.numero, pizza.codigo,
+		max(case
+				when borda.preco is null then 0
+				else borda.preco
+			end+precoportamanho.preco) as preco
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+		join pizzasabor on pizzasabor.pizza = pizza.codigo
+		join sabor on pizzasabor.sabor = sabor.codigo
+		join precoportamanho on precoportamanho.tipo = sabor.tipo and precoportamanho.tamanho = pizza.tamanho
+		left join borda on pizza.borda = borda.codigo
+	where comanda.data = cast('2020-08-09' as date)
+	group by comanda.numero, pizza.codigo) as tmp
+group by tmp.numero;
+
+-- comanda de maior valor total em 09/08/2020
+select tmp.numero as comanda, sum(tmp.preco) as total
+from
+	(select comanda.numero, pizza.codigo,
+		max(case
+				when borda.preco is null then 0
+				else borda.preco
+			end+precoportamanho.preco) as preco
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+		join pizzasabor on pizzasabor.pizza = pizza.codigo
+		join sabor on pizzasabor.sabor = sabor.codigo
+		join precoportamanho on precoportamanho.tipo = sabor.tipo and precoportamanho.tamanho = pizza.tamanho
+		left join borda on pizza.borda = borda.codigo
+	where comanda.data = cast('2020-08-09' as date)
+	group by comanda.numero, pizza.codigo) as tmp
+group by tmp.numero
+having sum(tmp.preco) =
+	(select sum(tmp.preco)
+	from
+		(select comanda.numero, pizza.codigo,
+			max(case
+					when borda.preco is null then 0
+					else borda.preco
+				end+precoportamanho.preco) as preco
+		from comanda
+			join pizza on pizza.comanda = comanda.numero
+			join pizzasabor on pizzasabor.pizza = pizza.codigo
+			join sabor on pizzasabor.sabor = sabor.codigo
+			join precoportamanho on precoportamanho.tipo = sabor.tipo and precoportamanho.tamanho = pizza.tamanho
+			left join borda on pizza.borda = borda.codigo
+		where comanda.data = cast('2020-08-09' as date)
+		group by comanda.numero, pizza.codigo) as tmp
+	group by tmp.numero
+	order by 1 desc
+	limit 1);
+
+-- sabor mais pedido por tipo
+
+-- ranking por tipo
+select sabor.nome as sabor, tipo.nome as tipo, count(*) as quantidade
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+	join pizzasabor on pizzasabor.pizza = pizza.codigo
+	join sabor on pizzasabor.sabor = sabor.codigo
+	join tipo on sabor.tipo = tipo.codigo
+group by 1, 2
+order by 2 asc, 3 desc;
+
+-- quantidade mais pedida de cada tipo
+select tmp.tipo, max(tmp.quantidade) as maximo
+from
+	(select sabor.nome as sabor, tipo.nome as tipo, count(*) as quantidade
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+		join pizzasabor on pizzasabor.pizza = pizza.codigo
+		join sabor on pizzasabor.sabor = sabor.codigo
+		join tipo on sabor.tipo = tipo.codigo
+	group by 1, 2) as tmp
+group by 1
+order by 1 asc;
+
+-- sabor mais pedido por tipo, usando produto cartesiano
+select tmp1.*
+from 
+	(select sabor.nome as sabor, tipo.nome as tipo, count(*) as quantidade
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+		join pizzasabor on pizzasabor.pizza = pizza.codigo
+		join sabor on pizzasabor.sabor = sabor.codigo
+		join tipo on sabor.tipo = tipo.codigo
+	group by 1, 2) as tmp1
+	join
+		(select tmp.tipo, max(tmp.quantidade) as maximo
+		from
+			(select sabor.nome as sabor, tipo.nome as tipo, count(*) as quantidade
+			from comanda
+				join pizza on pizza.comanda = comanda.numero
+				join pizzasabor on pizzasabor.pizza = pizza.codigo
+				join sabor on pizzasabor.sabor = sabor.codigo
+				join tipo on sabor.tipo = tipo.codigo
+			group by 1, 2) as tmp
+		group by 1) as tmp2 on tmp1.tipo = tmp2.tipo and tmp1.quantidade = tmp2.maximo;
+
+-- sabor mais pedido por tipo, usando tuplas e pertinência em conjuntos
+select sabor.nome as sabor, tipo.nome as tipo, count(*) as quantidade
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+	join pizzasabor on pizzasabor.pizza = pizza.codigo
+	join sabor on pizzasabor.sabor = sabor.codigo
+	join tipo on sabor.tipo = tipo.codigo
+group by 1, 2
+having (tipo.nome, count(*)) in 
+	(select tmp.tipo, max(tmp.quantidade) as maximo
+	from
+		(select sabor.nome as sabor, tipo.nome as tipo, count(*) as quantidade
+		from comanda
+			join pizza on pizza.comanda = comanda.numero
+			join pizzasabor on pizzasabor.pizza = pizza.codigo
+			join sabor on pizzasabor.sabor = sabor.codigo
+			join tipo on sabor.tipo = tipo.codigo
+		group by 1, 2) as tmp
+	group by 1);
+
+-- sabor mais pedido por tipo, usando subselect com vinculação
+select sabor.nome as sabor, tipo1.nome as tipo, count(*) as quantidade
+from comanda
+	join pizza on pizza.comanda = comanda.numero
+	join pizzasabor on pizzasabor.pizza = pizza.codigo
+	join sabor on pizzasabor.sabor = sabor.codigo
+	join tipo as tipo1 on sabor.tipo = tipo1.codigo
+group by 1, 2
+having count(*) =
+	(select count(*)
+	from comanda
+		join pizza on pizza.comanda = comanda.numero
+		join pizzasabor on pizzasabor.pizza = pizza.codigo
+		join sabor on pizzasabor.sabor = sabor.codigo
+		join tipo as tipo2 on sabor.tipo = tipo2.codigo
+	where tipo2.nome = tipo1.nome
+	group by sabor.nome, tipo2.nome
+	order by 1 desc
+	limit 1);
+

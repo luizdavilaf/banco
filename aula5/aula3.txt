@@ -1,0 +1,563 @@
+SELECT
+	[ * | campo | expressão | consulta [ [ AS ] apelido ] [, ... ] ]
+	[ FROM tabela | consulta [ [ AS ] apelido ] [ [ LEFT | RIGHT | FULL ] JOIN tabela | consulta [ [ AS ] apelido ] ON expressão [ ... ] ] [, ... ] ]
+	[ WHERE condição ]
+	[ GROUP BY campo | expressão [, ... ] ]
+	[ HAVING condição ]
+	[ ORDER BY campo | expressão [ ASC | DESC ] [, ... ] ]
+	[ LIMIT expressão ]
+	[ OFFSET expressão ]
+;
+
+sintaxe
+	A | B = A ou B
+	[ A ] = A é opcional
+	A ... = repetição de A
+
+----------------------------------------------------------------------------------------------------
+
+RTFM!!!
+
+----------------------------------------------------------------------------------------------------
+
+Transformação de tipos
+* cuidado com conversões implícitas!
+
+select cast('true' as boolean);
+select cast('12' as integer);
+select cast('12.34' as real);
+select cast('2000-12-31' as date);
+select cast('12:00:00' as time);
+select cast('2000-12-31 12:00:00' as timestamp);
+select cast('3 months 10 days' as interval);
+select cast(false as integer);
+select cast(12.34 as integer);
+
+Lógicos
+Operadores: and or not = <> != < <= > >=
+
+select 2 < 3 as resultado;
+
+Númericos, inteiros e reais
+Operadores: + - * / % ^ between
+Funções: abs(x) div(x, y) mod(x, y) ceil(x) floor(x) round(x) trunc(x) exp(x) ln(x) log(x) power(x, y) sqrt(x) random() sin(x) cos(x) tan(x) asin(x) acos(x) atan(x) degrees(x) radians(x)
+
+select 1+(2*3) as resultado;
+select 5/2 as resultado;
+select 5.0/2.0 as resultado;
+select 15 between 10 and 20 as resultado;
+select 15 not between 10 and 20 as resultado;
+
+Strings
+Operadores: || like ilike
+Funções: length(x) lower(x) upper(x) trim(x) strpos(x, y) substr(x, y) substr(x, y, z) replace(x, y, z) repeat(x, y) translate(x, y, z) md5(x) to_char(x, y)
+
+select 'abc' || 'def' as resultado; -- concatenação
+select 'abc' like 'a%' as resultado; -- começa com a?
+select 'abc' like '_b_' as resultado; -- tem um caracter qualquer, b e um caracter qualquer?
+select 'abc' like '%c' as resultado; -- acaba com c?
+select 'abcdefghi' like '%def%' as resultado; -- contém def?
+select 'abcdefghi' not like '%def%' as resultado; -- não contém def?
+
+Datas, horas, timestamps e intervalos
+Constantes: current_date current_time current_timestamp
+Operadores: + - between
+Funções: now() extract(day dow doy month year hour minute second) age(x) to_date(x, y)
+Intervalos: day(s) month(s) year(s) hour(s) minute(s) second(s)
+
+select current_date-cast('1 day' as interval) as ontem;
+select current_date+cast('1 day' as interval) as amanha;
+select
+	extract(day from current_date) as dia,
+	extract(dow from current_date) as dia_semana,
+	extract(doy from current_date) as dia_ano;
+select cast('2005-12-31' as date) between cast('2000-12-31' as date) and cast('2010-12-31' as date) as resultado;
+select cast('2005-12-31' as date) not between cast('2000-12-31' as date) and cast('2010-12-31' as date) as resultado;
+select to_char(current_date, 'DD/MM/YYYY') as dma;
+select to_date('31/12/2000', 'DD/MM/YYYY') as amd;
+
+Conjuntos
+Operadores: in
+
+select 'a' in ( 'a', 'e', 'i', 'o', 'u' ) as resultado;
+select 'x' not in ( 'a', 'e', 'i', 'o', 'u' ) as resultado;
+
+Condicionais
+
+CASE
+	WHEN condição THEN expressão [ ... ]
+	[ ELSE expressão ]
+END
+
+CASE expressão
+	WHEN expressão THEN expressão [ ... ]
+	[ ELSE expressão ]
+END
+
+sintaxe
+	A | B = A ou B
+	[ A ] = A é opcional
+	A ... = repetição de A
+
+-- data por extenso
+select
+	case extract(dow from current_date)
+		when 0 then 'domingo'
+		when 1 then 'segunda'
+		when 2 then 'terca'
+		when 3 then 'quarta'
+		when 4 then 'quinta'
+		when 5 then 'sexta'
+		when 6 then 'sabado'
+	end || ', ' || to_char(current_date, 'DD') || ' de ' ||
+	case extract(month from current_date)
+		when 1 then 'janeiro'
+		when 2 then 'fevereiro'
+		when 3 then 'marco'
+		when 4 then 'abril'
+		when 5 then 'maio'
+		when 6 then 'junho'
+		when 7 then 'julho'
+		when 8 then 'agosto'
+		when 9 then 'setembro'
+		when 10 then 'outubro'
+		when 11 then 'novembro'
+		when 12 then 'dezembro'
+	end || ' de ' || to_char(current_date, 'YYYY') as hoje;
+
+Funções de agregação
+Funções: count, min, max, sum, avg
+
+----------------------------------------------------------------------------------------------------
+-- programacaonet.sql
+----------------------------------------------------------------------------------------------------
+
+-- todos os canais (more: up, down, pageup, pagedown, home, end, q)
+select *
+from canal;
+
+-- apenas código e nome de todos os canais
+select codigo, nome
+from canal;
+
+-- 1a página de 10 canais
+select *
+from canal
+limit 10 offset 0;
+
+-- 2a página de 10 canais
+select *
+from canal
+limit 10 offset 10;
+
+-- 3a página de 10 canais
+select *
+from canal
+limit 10 offset 20;
+
+-- todos os programas do canal CAR
+select *
+from programa
+where canal = 'CAR';
+
+-- 1a página de 10 programas do canal CAR
+select *
+from programa
+where canal = 'CAR'
+limit 10 offset 0;
+
+-- 2a página de 10 programas do canal CAR
+select *
+from programa
+where canal = 'CAR'
+limit 10 offset 10;
+
+-- 3a página de 10 programas do canal CAR
+select *
+from programa
+where canal = 'CAR'
+limit 10 offset 20;
+
+-- 1a página de programas do canal CAR ordenados por nome crescente
+select *
+from programa
+where canal = 'CAR'
+order by nome asc
+limit 10 offset 0;
+
+-- 1a página de programas do canal CAR ordenados por nome (campo 4) crescente
+select *
+from programa
+where canal = 'CAR'
+order by 4 asc
+limit 10 offset 0;
+
+-- 1a página de programas do canal CAR ordenados por nome decrescente
+select *
+from programa
+where canal = 'CAR'
+order by nome desc
+limit 10 offset 0;
+
+-- 1a página de programas do canal CAR ordenados por nome (campo 4) decrescente
+select *
+from programa
+where canal = 'CAR'
+order by 4 desc
+limit 10 offset 0;
+
+-- 1a página de programas do canal CAR ordenados por nome crescente e horário crescente
+select *
+from programa
+where canal = 'CAR'
+order by nome asc, horario asc
+limit 10 offset 0;
+
+-- 1a página de programas do canal CAR ordenados por nome decrescente e horário crescente
+select *
+from programa
+where canal = 'CAR'
+order by nome desc, horario asc
+limit 10 offset 0;
+
+-- nomes dos programas do canal CAR, com repetições
+select nome
+from programa
+where canal = 'CAR'
+order by nome asc;
+
+-- nomes dos programas do canal CAR, sem repetições
+select distinct nome
+from programa
+where canal = 'CAR'
+order by nome asc;
+
+-- listagem paginada para humanos dos programas do canal CAR
+-- valor dos campos canal, horario e nome muda linha a linha
+select canal,
+	case extract(dow from horario)
+		when 0 then 'domingo'
+		when 1 then 'segunda'
+		when 2 then 'terca'
+		when 3 then 'quarta'
+		when 4 then 'quinta'
+		when 5 then 'sexta'
+		when 6 then 'sabado'
+	end as dia_semana,
+	to_char(horario, 'DD/MM/YYYY') as data,
+	to_char(horario, 'HH24:MI:SS') as hora,
+	nome
+from programa
+where canal = 'CAR'
+order by horario asc
+limit 10 offset 0;
+
+-- quais programas passaram em 01/05/2009 no canal CAR?
+
+-- considerando horário como timestamp
+select *
+from programa
+where canal = 'CAR' and
+	horario between cast('2009-05-01 00:00:00' as timestamp) and cast('2009-05-01 23:59:59' as timestamp);
+
+-- considerando horário como date
+select *
+from programa
+where canal = 'CAR' and
+	cast(horario as date) = cast('2009-05-01' as date);
+
+-- qual programa está passando em uma certa data e hora no canal CAR?
+-- bd = sql + cérebro!
+
+-- em 2009-05-01 13:00
+select *
+from programa
+where canal = 'CAR' and
+	horario = cast('2009-05-01 13:00' as timestamp);
+
+-- em 2009-05-01 13:10
+select *
+from programa
+where canal = 'CAR' and
+	horario = cast('2009-05-01 13:10' as timestamp);
+-- a resposta deveria ser Johnny Test que começou em 2009-05-01 13:00:00
+
+-- programas do canal CAR até 2009-05-01 13:10 ordenados por horário decrescente
+select *
+from programa
+where canal = 'CAR' and
+	horario <= cast('2009-05-01 13:10' as timestamp)
+order by horario desc;
+-- o primeiro é Johnny Test que começou em 2009-05-01 13:00:00
+
+-- primeiro dos programas do canal CAR até 2009-05-01 13:10 ordenados por horário decrescente
+select *
+from programa
+where canal = 'CAR' and
+	horario <= cast('2009-05-01 13:10' as timestamp)
+order by horario desc
+limit 1;
+
+----------------------------------------------------------------------------------------------------
+-- navenet.sql (não modele nem popule assim!)
+----------------------------------------------------------------------------------------------------
+
+-- todas HD de 500GB?
+select *
+from produto
+where descricao like '%hd%500%gb%';
+
+-- todas HD de 500GB?
+-- evitar ilike sempre que possível
+select *
+from produto
+where descricao ilike '%hd%500%gb%';
+
+-- todas HD de 500GB?
+select *
+from produto
+where lower(descricao) like '%hd%500%gb%';
+
+-- todas HD de 500GB
+select *
+from produto
+where lower(descricao) like '%hd % 500%gb%';
+
+-- quantas HDs de 500GB?
+select count(*) as quantidade
+from produto
+where lower(descricao) like '%hd % 500%gb%';
+
+-- quantas HDs distintas de 500GB?
+select count(distinct lower(descricao)) as quantidade
+from produto
+where lower(descricao) like '%hd % 500%gb%';
+-- HD NOTEBOOK SATA2 2.5` 500GB HITACHI 5400RPM SLIM está repetida
+
+-- qual preço em R$ da HD de 500GB mais barata?
+select min(preco)*5.63 as minimo
+from produto
+where lower(descricao) like '%hd % 500%gb%';
+
+-- qual preço em R$ da HD de 500GB mais cara?
+select max(preco)*5.63 as maximo
+from produto
+where lower(descricao) like '%hd % 500%gb%';
+
+-- qual preço médio em R$ das HD de 500GB?
+select avg(preco)*5.63 as medio
+from produto
+where lower(descricao) like '%hd % 500%gb%';
+
+-- quais são os departamentos?
+
+-- usando distinct
+select distinct departamento
+from produto;
+
+-- usando group by
+select departamento
+from produto
+group by departamento;
+
+-- qual a quantidade de produtos por departamento?
+select departamento, count(*) as quantidade
+from produto
+group by departamento;
+-- ordena, agrupa e aplica função de agregação em cada grupo
+
+ codigo | descricao | departamento | preco
+--------+-----------+--------------+-------
+ 1      | prod1     | depto1       | 10.00
+ 2      | prod2     | depto2       | 15.00
+ 3      | prod3     | depto1       | 20.00
+ 4      | prod4     | depto2       | 25.00
+ 5      | prod5     | depto2       | 30.00
+
+ codigo | descricao | departamento | preco
+--------+-----------+--------------+-------
+ 1      | prod1     | depto1       | 10.00		-- grupo 1, departamento = depto1
+ 3      | prod3     | depto1       | 20.00		-- grupo 1, departamento = depto1
+ 2      | prod2     | depto2       | 15.00		-- grupo 2, departamento = depto2
+ 4      | prod4     | depto2       | 25.00		-- grupo 2, departamento = depto2
+ 5      | prod5     | depto2       | 30.00		-- grupo 2, departamento = depto2
+
+ departamento | quantidade
+--------------+------------
+ depto1       | 2
+ depto2       | 3
+
+-- qual preço médio em R$ de produtos por departamento?
+select departamento, avg(preco)*5.63 as medio
+from produto
+group by departamento;
+
+ codigo | descricao | departamento | preco
+--------+-----------+--------------+-------
+ 1      | prod1     | depto1       | 10.00
+ 2      | prod2     | depto2       | 15.00
+ 3      | prod3     | depto1       | 20.00
+ 4      | prod4     | depto2       | 25.00
+ 5      | prod5     | depto2       | 30.00
+
+ codigo | descricao | departamento | preco
+--------+-----------+--------------+-------
+ 1      | prod1     | depto1       | 10.00		-- grupo 1, departamento = depto1
+ 3      | prod3     | depto1       | 20.00		-- grupo 1, departamento = depto1
+ 2      | prod2     | depto2       | 15.00		-- grupo 2, departamento = depto2
+ 4      | prod4     | depto2       | 25.00		-- grupo 2, departamento = depto2
+ 5      | prod5     | depto2       | 30.00		-- grupo 2, departamento = depto2
+
+ departamento | medio
+--------------+-------
+ depto1       | 15.00*5.63
+ depto2       | 23.33*5.63
+
+ departamento | medio
+--------------+--------
+ depto1       |  84.45
+ depto2       | 131.35
+
+-- qual faixa de preços em R$ de produtos por departamento?
+select departamento,
+	min(preco)*5.63 as menor,
+	max(preco)*5.63 as maior
+from produto
+group by departamento;
+
+-- ranking de departamentos pelo preço médio em R$ de produtos por departamento
+select departamento,
+	avg(preco)*5.63 as medio
+from produto
+group by departamento
+order by 2 desc;
+
+-- quais departamentos possuem menos de 10 produtos?
+select departamento,
+	count(*) as quantidade
+from produto
+group by departamento
+having count(*) < 10;
+-- where: filtro antes do group by
+-- having: filtro depois do group by
+
+-- quais departamentos possuem produto mais barato com preço superior a R$100?
+select departamento
+from produto
+group by departamento
+having min(preco)*5.63 > 100;
+
+-- em quais departamentos o produto mais caro do departamento custa até o dobro do preço médio dos produtos daquele departamento?
+select departamento
+from produto
+group by departamento
+having max(preco) < 2*avg(preco);
+
+----------------------------------------------------------------------------------------------------
+-- programacaonet.sql
+----------------------------------------------------------------------------------------------------
+
+-- quantidade de programas do canal CAR por dia?
+select cast(horario as date) as data,
+	count(*) as quantidade
+from programa
+where canal = 'CAR'
+group by 1
+order by 1 asc;
+
+-- quantidade de programas por canal por dia?
+select canal,
+	cast(horario as date) as data,
+	count(*) as quantidade
+from programa
+group by 1, 2
+order by 1 asc, 2 asc;
+-- não basta ser por canal
+-- não basta ser por dia
+-- tem que ser por ambos
+-- grupo formado pelas linhas que possuem o mesmo código do canal e a mesma data
+
+-- ranking dos canais que mais passam programas entre 01/05/2009 e 10/05/2009 das 08:00 às 12:00
+select canal,
+	count(*) as quantidade
+from programa
+where cast(horario as date) between cast('2009-05-01' as date) and cast('2009-05-10' as date) and
+	cast(horario as time) between cast('08:00' as time) and cast('12:00' as time)
+group by canal
+order by 2 desc;
+
+-- quantos programas passam no canal CAR no primeiro domingo de maio de 2009?
+
+-- calculando o primeiro domingo de maio de 2009
+select cast('2009-05-01' as date)+cast(cast((7-cast(extract(dow from cast('2009-05-01' as date)) as integer))%7 as text) || ' days' as interval);
+
+-- contando os programas do canal CAR no primeiro domingo de maio de 2009
+select count(*) as quantidade
+from programa
+where canal = 'CAR' and
+	cast(horario as date) = cast('2009-05-01' as date)+cast(cast((7-cast(extract(dow from cast('2009-05-01' as date)) as integer))%7 as text) || ' days' as interval);
+
+-- ranking da quantidade de programas do Batman, Ben 10, Chaves e Scooby Doo entre 03/05/2009 e 09/05/2009
+
+-- todos os programas do Batman?
+select *
+from programa
+where nome = 'batman';
+
+-- todos os programas do Batman no período
+select *
+from programa
+where cast(horario as date) between cast('2009-05-03' as date) and cast('2009-05-09' as date) and
+	lower(nome) like '%batman%';
+
+-- todos os programas do Ben 10 no período
+select *
+from programa
+where cast(horario as date) between cast('2009-05-03' as date) and cast('2009-05-09' as date) and
+	lower(nome) like '%ben%10%';
+
+-- todos os programas do Chaves no período
+select *
+from programa
+where cast(horario as date) between cast('2009-05-03' as date) and cast('2009-05-09' as date) and
+	lower(nome) like '%chaves%';
+
+-- todos os programas do Scooby Doo no período
+select *
+from programa
+where cast(horario as date) between cast('2009-05-03' as date) and cast('2009-05-09' as date) and
+	lower(nome) like '%scooby%doo%';
+
+-- usando case para transformar o nome do programa no nome do personagem
+select nome,
+	case
+		when lower(nome) like '%batman%' then 'Batman'
+		when lower(nome) like '%ben%10%' then 'Ben 10'
+		when lower(nome) like '%chaves%' then 'Chaves'
+		when lower(nome) like '%scooby%doo%' then 'Scooby Doo'
+	end as personagem
+from programa
+where (cast(horario as date) between cast('2009-05-03' as date) and cast('2009-05-09' as date)) and
+	(lower(nome) like '%batman%' or
+	lower(nome) like '%ben%10%' or
+	lower(nome) like '%chaves%' or
+	lower(nome) like '%scooby%doo%');
+
+-- agrupando e contando pelo nome do personagem
+select
+	case
+		when lower(nome) like '%batman%' then 'Batman'
+		when lower(nome) like '%ben%10%' then 'Ben 10'
+		when lower(nome) like '%chaves%' then 'Chaves'
+		when lower(nome) like '%scooby%doo%' then 'Scooby Doo'
+	end as personagem,
+	count(*) as quantidade
+from programa
+where (cast(horario as date) between cast('2009-05-03' as date) and cast('2009-05-09' as date)) and
+	(lower(nome) like '%batman%' or
+	lower(nome) like '%ben%10%' or
+	lower(nome) like '%chaves%' or
+	lower(nome) like '%scooby%doo%')
+group by 1
+order by 2 desc;
+

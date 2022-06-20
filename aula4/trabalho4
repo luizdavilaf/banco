@@ -1,0 +1,77 @@
+1) Escreva comandos select, utilizando as tabelas criadas na lista de exercícios de DDL e DML da
+semana 2 e adequadas na lista de exercícios de DQL 1 das semanas 3 e 4, para responder as
+perguntas:
+a) auto-locadoras
+1) Quais as marcas e modelos em cada grupo de carros?
+2) Qual o ranking de quantidade de locações em cada grupo de carros no último semestre?
+3) Qual o ranking de quantidade de locações em cada grupo de carros por filial no último semestre?
+4) Qual o ranking de quantidade de locações por marca e modelo de carro no último semestre?
+5) Qual o ranking de quantidade de locações por marca e modelo de carro por filial no último
+semestre?
+6) Qual o ranking da duração das locações em cada grupo de carros no último semestre?
+7) Qual o ranking da duração das locações em cada grupo de carros por filial no último semestre?
+8) Qual o ranking de quantidade de locações em cada grupo de carros por filial para clientes
+pessoas físicas nos últimos 3 meses?
+9) Qual o ranking de quantidade de locações em cada grupo de carros por filial para clientes
+pessoas jurídicas nos últimos 3 meses?
+10) Qual a quantidade de locações de cada carro nos últimos 3 meses?
+11) Qual o valor médio diário das locações em cada grupo de carros?
+12) Quais carros disponíveis em cada dada filial possuem 3 dadas características (câmbio manual,
+câmbio automático, ar condicionado, direção hidráulica, direção elétrica, vidro elétrico, ...)
+informadas pelo usuário?
+13) Qual o grupo, marca, modelo e placa dos carros disponíveis em cada filial?
+14) Quais grupos de carros possuem mais de 5 carros disponíveis em cada filial?
+15) Quantos carros estão locados (ainda não entregues) em cada grupo de carros em cada filial?
+16) Quais grupos de carros tiveram mais de 5 locações por filial nos últimos 90 dias?
+b) bancos
+1) Quais os CPFs e nomes dos clientes que residem em uma cidade mas possuem conta corrente
+ativa em uma agência de outra cidade?
+2) Quantas contas correntes ativas possuem saldo atual superior a R$10.000,00 em cada agência?
+3) Quais agências contrataram mais de 50 empréstimos com valor superior a R$10.000,00 nos
+últimos 60 dias?
+4) Qual a quantidade de empréstimos contratados por faixa etária (-19, 20-29, 30-39, 40-49, 50-59,
+60-69, 70-) por agência nos últimos 36 meses?
+5) Qual o valor médio de empréstimos contratados por faixa etária (-19, 20-29, 30-39, 40-49, 50-59,
+60-69, 70-) por agência nos últimos 36 meses?
+6) Quantos clientes atualmente possuem conta corrente ativa e cheque especial em cada agência?
+7) Quantos clientes atualmente possuem conta corrente ativa mas não cheque especial em cada
+agência?
+8) Quantos clientes atualmente possuem conta corrente ativa mas não cartão de crédito em cada
+agência?
+9) Quantas contas correntes com 10 ou mais anos de idade foram encerradas no último semestre
+por agência?
+10) Mostrar o gráfico de barras, como no exemplo, da quantidade média de contas correntes abertas
+nos últimos 3 meses por cidade onde o cliente reside, sendo cada * equivalente a 10 contas.
+cidade
+ | contas abertas
+--------------+----------------
+Rio Grande
+ | **** (43)
+Pelotas
+ | *** (32)
+Porto Alegre | ****** (67)
+...
+
+
+
+
+2) Descreva e justifique as adequações/alterações que foram realizadas nas tabelas da lista de
+exercícios de DQL 1 das semanas 3 e 4 para que o exercício 1 acima pudesse ser resolvido:
+a) auto-locadoras
+b) bancos
+3) Utilizando a modelagem da pizzaria trabalhada nas semanas 1 e 2, escreva comandos select
+para responder as perguntas:
+a) Quais ingredientes possui o sabor São Tomé e Príncipe?
+b) Quais sabores contém o ingrediente bacon?
+c) Quais sabores contém os ingredientes bacon e gorgonzola?
+d) Quais sabores salgados possuem mais de 8 ingredientes?
+e) Quais sabores doces possuem mais de 8 ingredientes?
+f) Quais sabores foram pedidos mais de 20 vezes no mês passado?
+g) Quais sabores salgados foram pedidos mais de 20 vezes no mês passado?
+h) Quais sabores doces foram pedidos mais de 20 vezes no mês passado?
+i) Qual o ranking dos ingredientes mais pedidos nos últimos 12 meses?
+j) Qual o ranking dos sabores salgados mais pedidos nos últimos 12 meses por mês?
+k) Qual o ranking dos sabores doces mais pedidos nos últimos 12 meses por mês?
+l) Qual a quantidade de pizzas pedidas por tipo por tamanho nos últimos 6 meses?
+m) Qual o ranking dos ingredientes mais pedidos acompanhando cada borda nos últimos 6 meses?
+
